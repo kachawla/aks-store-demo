@@ -37,7 +37,7 @@ resource rabbitMq 'Radius.Messaging/rabbitMQ@2025-08-01-preview' = {
     environment: environment
     application: storeApp.id
     codeReference: 'src/order-service/plugins/messagequeue.js#L26'
-    password: rabbitMqPassword
+    password: rabbitmqSecret.id
     queue: 'orders'
     username: 'myadmin'
   }
@@ -50,7 +50,7 @@ resource rabbitmqSecret 'Radius.Security/secrets@2025-08-01-preview' = {
     application: storeApp.id
     codeReference: 'src/order-service/plugins/messagequeue.js#L29'
     data: {
-      ORDER_QUEUE_PASSWORD: {
+      password: {
         value: rabbitMqPassword
       }
     }
@@ -265,7 +265,7 @@ resource makelineService 'Radius.Compute/containers@2025-08-01-preview' = {
           ORDER_QUEUE_PASSWORD: {
             valueFrom: {
               secretKeyRef: {
-                key: 'ORDER_QUEUE_PASSWORD'
+                key: 'password'
                 secretName: rabbitmqSecret.name
               }
             }
@@ -306,7 +306,7 @@ resource orderService 'Radius.Compute/containers@2025-08-01-preview' = {
           ORDER_QUEUE_PASSWORD: {
             valueFrom: {
               secretKeyRef: {
-                key: 'ORDER_QUEUE_PASSWORD'
+                key: 'password'
                 secretName: rabbitmqSecret.name
               }
             }
