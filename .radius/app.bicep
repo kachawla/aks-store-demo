@@ -2,10 +2,6 @@ extension radius
 
 param environment string
 
-@description('Password for the RabbitMQ broker the order pipeline uses.')
-@secure()
-param rabbitMqPassword string
-
 @description('Password/token for the OCI registry the containerImages recipe pushes to (a GitHub token with write:packages for ghcr.io).')
 @secure()
 param registryPassword string
@@ -39,21 +35,6 @@ resource rabbitMq 'Radius.Messaging/rabbitMQ@2025-08-01-preview' = {
     codeReference: 'src/order-service/plugins/messagequeue.js#L26'
     queue: 'orders'
     username: 'myadmin'
-    password: rabbitMqPassword
-  }
-}
-
-resource rabbitMqSecret 'Radius.Security/secrets@2025-08-01-preview' = {
-  name: 'rabbitmq-secret'
-  properties: {
-    environment: environment
-    application: aksStoreDemoApp.id
-    codeReference: 'src/makeline-service/consumer.go#L133'
-    data: {
-      PASSWORD: {
-        value: rabbitMqPassword
-      }
-    }
   }
 }
 
@@ -399,8 +380,8 @@ resource makelineServiceContainer 'Radius.Compute/containers@2025-08-01-preview'
           ORDER_QUEUE_PASSWORD: {
             valueFrom: {
               secretKeyRef: {
-                secretName: rabbitMqSecret.name
-                key: 'PASSWORD'
+                secretName: rabbitMq.properties.secrets.name
+                key: 'password'
               }
             }
           }
@@ -443,8 +424,8 @@ resource orderServiceContainer 'Radius.Compute/containers@2025-08-01-preview' = 
           ORDER_QUEUE_PASSWORD: {
             valueFrom: {
               secretKeyRef: {
-                secretName: rabbitMqSecret.name
-                key: 'PASSWORD'
+                secretName: rabbitMq.properties.secrets.name
+                key: 'password'
               }
             }
           }
